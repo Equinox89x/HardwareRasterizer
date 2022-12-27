@@ -25,11 +25,11 @@ Effect::Effect(ID3D11Device* device, const std::wstring& assetFile)
     if (!m_pDiffuseMapVariable->IsValid()) {
         std::wcout << L"m_pGlossMapVariable is not valid! \n";
     }
-    m_pNormalMapVariable = m_pEffect->GetVariableByName("gSpecularMap")->AsShaderResource();
+    m_pNormalMapVariable = m_pEffect->GetVariableByName("gNormalMap")->AsShaderResource();
     if (!m_pDiffuseMapVariable->IsValid()) {
         std::wcout << L"m_pNormalMapVariable is not valid! \n";
     }
-    m_pSpecularMapVariable = m_pEffect->GetVariableByName("gNormalMap")->AsShaderResource();
+    m_pSpecularMapVariable = m_pEffect->GetVariableByName("gSpecularMap")->AsShaderResource();
     if (!m_pDiffuseMapVariable->IsValid()) {
         std::wcout << L"m_pSpecularMapVariable is not valid! \n";
     }
@@ -133,10 +133,19 @@ void Effect::SetMatrix(const Matrix* matrix, const Matrix* worldMatrix, const Ve
     m_pOnbMatrixVariable->SetFloatVector(reinterpret_cast<const float*>(cameraPos));
 }
 
-void Effect::SetDiffuseMap(Texture* pDiffuseTexture)
+void Effect::SetMaps(Texture* pDiffuseTexture, Texture* pSpecularMap, Texture* pNormalMap, Texture* pGlossMap)
 {
     if (m_pDiffuseMapVariable) {
         m_pDiffuseMapVariable->SetResource(pDiffuseTexture->GetSRV());
+    }
+    if (m_pSpecularMapVariable) {
+        m_pSpecularMapVariable->SetResource(pSpecularMap->GetSRV());
+    }
+    if (m_pNormalMapVariable) {
+        m_pNormalMapVariable->SetResource(pNormalMap->GetSRV());
+    }
+    if (m_pGlossMapVariable) {
+        m_pGlossMapVariable->SetResource(pGlossMap->GetSRV());
     }
 }
 

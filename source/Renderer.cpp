@@ -59,7 +59,7 @@ namespace dae {
 			m_RotationTransform = Matrix::CreateRotationZ(0);
 			m_ScaleTransform = Matrix::CreateScale(1, 1, 1);
 			m_pMesh->SetWorldMatrix(m_ScaleTransform * m_RotationTransform * m_TranslationTransform);
-			m_pMesh->m_pEffect->SetDiffuseMap(m_pTexture);
+			m_pMesh->m_pEffect->SetMaps(m_pTexture, m_pTextureSpecular, m_pTextureNormal, m_pTextureGloss);
 
 			const float screenWidth{ static_cast<float>(m_Width) };
 			const float screenHeight{ static_cast<float>(m_Height) };
@@ -103,13 +103,13 @@ namespace dae {
 	}
 
 	void Renderer::Update(const Timer* pTimer) {
-		float yawAngle{ (cos(pTimer->GetTotal()) + 1.f) / 2.f * PI_2 };
+		m_RotationAngle = (cos(pTimer->GetTotal()) + 1.f) / 2.f * PI_2;
 		const float screenWidth{ static_cast<float>(m_Width) };
 		const float screenHeight{ static_cast<float>(m_Height) };
 		m_pCamera->m_AspectRatio = screenWidth / screenHeight;
 		m_pCamera->Update(pTimer->GetElapsed());
 
-		m_RotationTransform = Matrix::CreateRotationY(yawAngle);
+		m_RotationTransform = Matrix::CreateRotationY(m_RotationAngle);
 		m_pMesh->SetWorldMatrix(m_ScaleTransform * m_RotationTransform * m_TranslationTransform);
 		m_pCamera->m_WorldViewProjectionMatrix = m_pMesh->m_WorldMatrix * m_pCamera->m_ViewMatrix * m_pCamera->GetProjectionMatrix();
 		m_pMesh->SetMatrix(&m_pCamera->m_WorldViewProjectionMatrix, &m_pMesh->m_WorldMatrix, &m_pCamera->m_Origin);

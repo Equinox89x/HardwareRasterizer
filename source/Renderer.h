@@ -29,6 +29,7 @@ namespace dae
 
 		int m_Width{};
 		int m_Height{};
+		float m_RotationAngle{ 0 };
 
 		bool m_IsInitialized{ false };
 

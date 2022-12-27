@@ -7,7 +7,7 @@ Texture2D gGlossyMap : GlossyMap;
 Texture2D gSpecularMap : SpecularMap;
 Texture2D gNormalMap : NormalMap;
 
-float3 lightDirection = float3(0.577f, -0.577f, 0.5777f);
+float3 lightDirection = float3(0.577f, -0.577f, 0.577f);
 float diffuseReflectance = 7.f; //kd
 float shininess = 25.f;
 float PI = 3.14;
@@ -57,10 +57,10 @@ struct VS_OUTPUT
     float3 Tangent : TANGENT;
 };
 
- float3 Phong(float exp, float3 light, float3 viewdir, float3 normal, float3 ks)
+float3 Phong(float3 ks, float exp, float3 l, float3 v, float3 n)
 {
-	float3 reflect = light - 2 * (dot(normal,light) * normal);
-	const float cosa = dot(reflect, viewdir);
+	float3 reflect = l - 2 * (dot(n,l) * n);
+	float cosa = dot(reflect, v);
 	return ks * pow(cosa, exp);
 }
 
@@ -89,30 +89,33 @@ VS_OUTPUT VS(VS_INPUT input)
 float4 PS1(VS_OUTPUT input) : SV_TARGET
 {    
     //maps
-    float4 gloss = gGlossyMap.Sample(samPoint, input.Uv) * input.Color;
+    float4 gloss = gGlossyMap.Sample(samPoint, input.Uv);
     float4 spec = gSpecularMap.Sample(samPoint, input.Uv);
     float4 color = gDiffuseMap.Sample(samPoint, input.Uv);
     float4 normals = gNormalMap.Sample(samPoint, input.Uv);
     
-    float3 viewDir = (input.Position.rgb - gOnb);
-    
+    float3 viewDir = (input.Position.rgb - gOnb);    
+    float3 binormal = cross(input.Normal, input.Tangent);
+    float3x3 tangentSpaceAxis = float3x3(input.Tangent.x, input.Tangent.y, input.Tangent.z, binormal.x, binormal.y, binormal.z, input.Normal.x, input.Normal.y, input.Normal.z);
+      
     //Lambert cosine law (is correct)
-    float3 computedNormals = normalize(input.Normal + normals.rgb);
+    float3 computedNormals = normalize(mul(normals.rgb, tangentSpaceAxis) + input.Normal);
     float observedArea = saturate(dot(computedNormals, -lightDirection));
+    clamp(observedArea, 0, 1);
     
-    //diffuse (is correct)
-    float diffuseAmount = dot(-lightDirection, computedNormals);
-    float3 diffuse = diffuseAmount * Lambert(color.rgb);
+    //diffuse
+    float3 diffuse = Lambert(color.rgb);
   
     //specular
-    float specular = Phong(gloss.x * shininess, lightDirection, -viewDir, input.Normal, spec.rgb);
+    float specular = Phong(spec.rgb, gloss.x * shininess, -lightDirection, viewDir, computedNormals);
     
     //phong
     float3 phong = diffuse + specular;
 
     float4 output;
-    output.rgb = observedArea;
-    //output.rgb = diffuse * observedArea;
+    //output.rgb = (observedArea, observedArea, observedArea);
+    output.rgb = diffuse * observedArea;
+    //output.rgb = specular;
     //output.rgb = phong * observedArea;
     output.a = 1;
     return output;
@@ -120,31 +123,34 @@ float4 PS1(VS_OUTPUT input) : SV_TARGET
 
 float4 PS2(VS_OUTPUT input) : SV_TARGET
 {
-    //maps
-    float4 gloss = gGlossyMap.Sample(samPointLinear, input.Uv) * input.Color;
-    float4 spec = gSpecularMap.Sample(samPointLinear, input.Uv);
-    float4 color = gDiffuseMap.Sample(samPointLinear, input.Uv);
-    float4 normals = gNormalMap.Sample(samPointLinear, input.Uv);
+   //maps
+    float4 gloss = gGlossyMap.Sample(samPoint, input.Uv);
+    float4 spec = gSpecularMap.Sample(samPoint, input.Uv);
+    float4 color = gDiffuseMap.Sample(samPoint, input.Uv);
+    float4 normals = gNormalMap.Sample(samPoint, input.Uv);
     
     float3 viewDir = (input.Position.rgb - gOnb);
-    
+    float3 binormal = cross(input.Normal, input.Tangent);
+    float3x3 tangentSpaceAxis = float3x3(input.Tangent.x, input.Tangent.y, input.Tangent.z, binormal.x, binormal.y, binormal.z, input.Normal.x, input.Normal.y, input.Normal.z);
+      
     //Lambert cosine law (is correct)
-    float3 computedNormals = normalize(input.Normal + normals.rgb);
-    float observedArea = saturate(dot(computedNormals, -lightDirection));
+    float3 computedNormals = normalize(mul(normals.rgb, tangentSpaceAxis) + input.Normal);
+    float observedArea = dot(computedNormals, -lightDirection);
+    clamp(observedArea, 0, 1);
     
     //diffuse (is correct)
-    float diffuseAmount = dot(-lightDirection, computedNormals);
-    float3 diffuse = diffuseAmount * Lambert(color.rgb);
+    float3 diffuse = Lambert(color.rgb);
   
     //specular
-    float specular = Phong(gloss.x * shininess, lightDirection, -viewDir, input.Normal, spec.rgb);
+    float3 specular = Phong(spec.rgb, gloss.x * shininess, lightDirection, viewDir, computedNormals);
     
     //phong
     float3 phong = diffuse + specular;
 
     float4 output;
-    //output.rgb = observedArea;
-    output.rgb = diffuse * observedArea;
+    //output.rgb = (observedArea, observedArea, observedArea);
+    //output.rgb = diffuse * observedArea;
+    output.rgb = specular;
     //output.rgb = phong * observedArea;
     output.a = 1;
     return output;
@@ -153,30 +159,33 @@ float4 PS2(VS_OUTPUT input) : SV_TARGET
 float4 PS3(VS_OUTPUT input) : SV_TARGET
 {
     //maps
-    float4 gloss = gGlossyMap.Sample(samPointAni, input.Uv) * input.Color;
-    float4 spec = gSpecularMap.Sample(samPointAni, input.Uv);
-    float4 color = gDiffuseMap.Sample(samPointAni, input.Uv);
-    float4 normals = gNormalMap.Sample(samPointAni, input.Uv);
+    float4 gloss = gGlossyMap.Sample(samPoint, input.Uv);
+    float4 spec = gSpecularMap.Sample(samPoint, input.Uv);
+    float4 color = gDiffuseMap.Sample(samPoint, input.Uv);
+    float4 normals = gNormalMap.Sample(samPoint, input.Uv);
     
     float3 viewDir = (input.Position.rgb - gOnb);
-    
+    float3 binormal = cross(input.Normal, input.Tangent);
+    float3x3 tangentSpaceAxis = float3x3(input.Tangent.x, input.Tangent.y, input.Tangent.z, binormal.x, binormal.y, binormal.z, input.Normal.x, input.Normal.y, input.Normal.z);
+      
     //Lambert cosine law (is correct)
-    float3 computedNormals = normalize(input.Normal + normals.rgb);
+    float3 computedNormals = normalize(mul(normals.rgb, tangentSpaceAxis) + input.Normal);
     float observedArea = saturate(dot(computedNormals, -lightDirection));
+    clamp(observedArea, 0, 1);
     
-    //diffuse (is correct)
-    float diffuseAmount = dot(-lightDirection, computedNormals);
-    float3 diffuse = diffuseAmount * Lambert(color.rgb);
+    //diffuse
+    float3 diffuse = Lambert(color.rgb);
   
     //specular
-    float specular = Phong(gloss.x * shininess, lightDirection, -viewDir, input.Normal, spec.rgb);
+    float specular = Phong(spec.rgb, gloss.x * shininess, lightDirection, viewDir, computedNormals);
     
     //phong
     float3 phong = diffuse + specular;
 
     float4 output;
-    //output.rgb = observedArea;
+    //output.rgb = (observedArea, observedArea, observedArea);
     //output.rgb = diffuse * observedArea;
+    //output.rgb = specular;
     output.rgb = phong * observedArea;
     output.a = 1;
     return output;
