@@ -15,6 +15,7 @@ public:
     ID3DX11EffectTechnique* GetTechnique();
     void SetMatrix(const Matrix* matrix, const Matrix* worldMatrix, const Vector3* cameraPos);
     void SetMaps(Texture* pDiffuseTexture, Texture* pSpecularMap, Texture* pNormalMap, Texture* pGlossMap);
+    void SetMaps(Texture* pDiffuseTexture);
     void ChangeEffect(LPCSTR name);
 
 private:

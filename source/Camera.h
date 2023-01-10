@@ -3,13 +3,12 @@
 #include "directxmath.h"
 
 using namespace dae;
-class Camera
+struct Camera
 {
-
-public:
-
 	Camera() = default;
-	Camera(float fovAngle, Vector3 origin);
+
+	Camera(float _fovAngle, const Vector3& _origin);
+	void Initialize(float _fovAngle, Vector3 _origin);
 
 	float m_FovAngle{ 90.f };
 	float m_Fov{ };
@@ -24,15 +23,18 @@ public:
 	Matrix m_ViewMatrix{};
 	Vector3 m_Origin{ 0,0,0 };
 
+	float m_TotalPitch{};
+	float m_TotalYaw{};
+
 	Matrix GetViewMatrix() { return m_ViewMatrix; };
 	Matrix GetProjectionMatrix() { return m_ProjectionMatrix; };
 	void Update(float deltaTime);
 
-private:
 	void CalculateViewMatrix();
 	void CalculateProjectionMatrix();
 
-	const float m_MovementSpeed{ 5.f };
+	const float m_RotationSpeed{ 1.f };
+	const float m_MovementSpeed{ 10.f };
 
 	Vector3 m_Forward{ 0.266f, -0.453f, 0.860f };
 	Vector3 m_Up{ Vector3::UnitY };

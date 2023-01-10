@@ -5,7 +5,8 @@
 enum class Technique {
     Point,
     Linear,
-    Anisotropic
+    Anisotropic,
+    Flat
 };
 
 using namespace dae;

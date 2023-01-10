@@ -33,7 +33,7 @@ namespace dae
 
 		bool m_IsInitialized{ false };
 
-		Camera* m_pCamera{ nullptr };
+		Camera m_pCamera{ };
 
 		ID3D11Device* m_pDevice{ nullptr };
 		ID3D11DeviceContext* m_pDeviceContext{ nullptr };
@@ -42,6 +42,9 @@ namespace dae
 		ID3D11DepthStencilView* m_pDepthStencilView{ nullptr };
 		ID3D11Resource* m_pRenderTargetBuffer{ nullptr };
 		ID3D11RenderTargetView* m_PRenderTargetView{ nullptr };
+
+		Mesh* m_pCombustionMesh{ nullptr };
+		Texture* m_pCombustionTexture{ nullptr };
 
 		Mesh* m_pMesh{ nullptr };
 		Texture* m_pTexture{ nullptr };

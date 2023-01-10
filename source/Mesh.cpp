@@ -141,13 +141,19 @@ void Mesh::CycleTechnique()
     switch (m_Technique)
     {
     case Technique::Point:
+        std::cout << "Point Sampling \n";
         m_pEffect->ChangeEffect("DefaultTechnique");
         break;
     case Technique::Linear:
+        std::cout << "Linear Sampling \n";
         m_pEffect->ChangeEffect("LinearTechnique");
         break;
     case Technique::Anisotropic:
-        m_pEffect->ChangeEffect("AniTechnique");
+        std::cout << "Anisotropic Sampling \n";
+        m_pEffect->ChangeEffect("AniTechnique");    
+        break;
+    case Technique::Flat:
+        m_pEffect->ChangeEffect("FlatTechnique");
         break;
     default:
         break;

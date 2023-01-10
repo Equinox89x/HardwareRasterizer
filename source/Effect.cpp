@@ -149,6 +149,13 @@ void Effect::SetMaps(Texture* pDiffuseTexture, Texture* pSpecularMap, Texture* p
     }
 }
 
+void Effect::SetMaps(Texture* pDiffuseTexture)
+{
+    if (m_pDiffuseMapVariable) {
+        m_pDiffuseMapVariable->SetResource(pDiffuseTexture->GetSRV());
+    }
+}
+
 void Effect::ChangeEffect(LPCSTR name)
 {
     m_pTechnique = m_pEffect->GetTechniqueByName(name);
